@@ -10,48 +10,43 @@
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';</script>
     
     <style>
-        :root {
-            --bg-base: #0a0a0a; --bg-panel: #111111; --bg-card: #171717;
-            --border-color: #262626; --text-main: #ededed; --text-muted: #a3a3a3;
-            --accent: #facc15; --accent-hover: #eab308; --danger: #dc2626;
-        }
+        :root { --bg-base: #0a0a0a; --bg-panel: #111111; --bg-card: #171717; --border-color: #262626; --text-main: #ededed; --text-muted: #a3a3a3; --accent: #facc15; --accent-hover: #eab308; --danger: #dc2626; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--bg-base); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
-        
-        .sidebar { width: 350px; background-color: var(--bg-panel); border-right: 1px solid var(--border-color); padding: 24px; display: flex; flex-direction: column; gap: 24px; overflow-y: auto; }
+        .sidebar { width: 380px; background-color: var(--bg-panel); border-right: 1px solid var(--border-color); padding: 24px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
         .main-content { flex: 1; padding: 24px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; position: relative; }
-        
         .header h1 { font-size: 1.2rem; font-weight: 600; color: var(--accent); }
         .header p { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
-        
         .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; }
         label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; }
         input[type="file"], input[type="text"] { width: 100%; padding: 8px; background: var(--bg-base); border: 1px dashed var(--border-color); border-radius: 4px; color: var(--text-muted); }
         input[type="text"] { border-style: solid; font-family: 'Brush Script MT', cursive; font-size: 24px; color: #fff; }
-        
         .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
         .tab { flex: 1; text-align: center; padding: 8px; background: var(--bg-base); border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
         .tab.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
         .panel { display: none; } .panel.active { display: block; }
-        
         canvas.sig-pad { width: 100%; background: #fff; border-radius: 4px; cursor: crosshair; }
-        
         .btn { width: 100%; padding: 12px; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; }
         .btn-primary { background: var(--accent); color: #000; }
         .btn-secondary { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); margin-top: 8px; }
+        .btn-success { background: #16a34a; color: #fff; margin-top: 16px; border: 1px solid #16a34a; }
         
-        /* PDF Controls & Preview */
         #pdf-controls { display: none; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; width: 100%; }
         #pdf-controls button { width: auto; padding: 6px 12px; margin: 0; }
-        #preview-container { position: relative; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.5); display: none; }
+        #preview-container { position: relative; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.5); display: none; overflow: hidden; }
         #pdf-canvas { display: block; }
         
-        #draggable-sig {
-            position: absolute; top: 50px; left: 50px; width: 150px; height: 75px;
-            background-size: contain; background-repeat: no-repeat; background-position: center;
-            border: 2px dashed var(--accent); cursor: move; display: none; box-sizing: border-box; background-color: rgba(250, 204, 21, 0.1);
+        /* Multi-element styles */
+        .draggable-item {
+            position: absolute; background-size: contain; background-repeat: no-repeat; background-position: center;
+            border: 2px dashed rgba(250, 204, 21, 0.5); cursor: move; box-sizing: border-box; background-color: rgba(250, 204, 21, 0.05);
         }
-        .resize-handle { position: absolute; right: -5px; bottom: -5px; width: 10px; height: 10px; background: var(--accent); border-radius: 50%; cursor: nwse-resize; }
+        .draggable-item:hover { border-color: var(--accent); background-color: rgba(250, 204, 21, 0.15); }
+        .draggable-item .resize-handle { position: absolute; right: -5px; bottom: -5px; width: 10px; height: 10px; background: var(--accent); border-radius: 50%; cursor: nwse-resize; display: none; }
+        .draggable-item:hover .resize-handle { display: block; }
+        .draggable-item .delete-btn { position: absolute; top: -10px; right: -10px; background: var(--danger); color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; line-height: 20px; text-align: center; cursor: pointer; display: none; border: none; }
+        .draggable-item:hover .delete-btn { display: block; }
+
         #status-msg { margin-top: 12px; font-size: 0.85rem; text-align: center; }
         .info-box { background: rgba(250, 204, 21, 0.1); border: 1px solid var(--accent); padding: 12px; border-radius: 4px; font-size: 0.85rem; color: var(--accent); display: none; }
     </style>
@@ -59,18 +54,11 @@
 <body>
 
     <div class="sidebar">
-        <div class="header">
-            <h1>B.L.A.S.T. ENGINE</h1>
-            <p>Módulo de Firma Multimodal</p>
-        </div>
+        <div class="header"><h1>B.L.A.S.T. ENGINE</h1><p>Módulo de Firma Multimodal</p></div>
+        <div class="card"><label>1. Documento Base</label><input type="file" id="docUpload" accept=".pdf,.docx"></div>
 
         <div class="card">
-            <label>1. Documento Base</label>
-            <input type="file" id="docUpload" accept=".pdf,.docx">
-        </div>
-
-        <div class="card">
-            <label>2. Configurar Firma</label>
+            <label>2. Crear Elemento</label>
             <div class="tabs">
                 <div class="tab active" onclick="switchTab('draw')">Dibujar</div>
                 <div class="tab" onclick="switchTab('text')">Texto</div>
@@ -79,59 +67,46 @@
 
             <div id="drawPanel" class="panel active">
                 <canvas id="sigCanvas" class="sig-pad" width="300" height="150"></canvas>
-                <button class="btn btn-secondary" onclick="signaturePad.clear(); updatePreview();">Limpiar Trazo</button>
+                <button class="btn btn-secondary" onclick="signaturePad.clear();">Limpiar Trazo</button>
             </div>
 
             <div id="textPanel" class="panel">
-                <input type="text" id="textSig" placeholder="Escribe tu nombre..." oninput="updatePreview()">
+                <input type="text" id="textSig" placeholder="Escribe tu nombre o fecha...">
             </div>
 
             <div id="uploadPanel" class="panel">
-                <input type="file" id="imgSigUpload" accept="image/png, image/jpeg" onchange="updatePreview()">
+                <input type="file" id="imgSigUpload" accept="image/png, image/jpeg">
             </div>
             
-            <button class="btn btn-secondary" style="border-color: var(--accent); color: var(--accent);" onclick="updatePreview()">Aplicar a Previsualización</button>
+            <button class="btn btn-success" onclick="addElementToDoc()">+ Añadir al Documento</button>
         </div>
 
         <div>
-            <button class="btn btn-primary" onclick="processSignature()">Procesar y Firmar</button>
+            <button class="btn btn-primary" onclick="processSignature()">Procesar y Firmar Documento</button>
             <div id="status-msg">Esperando documento...</div>
         </div>
     </div>
 
     <div class="main-content">
-        <div id="docx-info" class="info-box">
-            Documento DOCX detectado. La previsualización visual no está disponible. La firma se añadirá al final del documento.
-        </div>
-        
-        <!-- Paginación añadida aquí -->
+        <div id="docx-info" class="info-box">Documento DOCX detectado. Los elementos se añadirán secuencialmente al final del documento.</div>
         <div id="pdf-controls">
             <button class="btn btn-secondary" onclick="prevPage()">Anterior</button>
             <span>Página <span id="page-num">1</span> de <span id="page-count">1</span></span>
             <button class="btn btn-secondary" onclick="nextPage()">Siguiente</button>
         </div>
-
         <div id="preview-container">
             <canvas id="pdf-canvas"></canvas>
-            <div id="draggable-sig">
-                <div class="resize-handle"></div>
-            </div>
+            <!-- Los elementos se inyectarán aquí -->
         </div>
     </div>
 
     <script>
         const canvas = document.getElementById('sigCanvas');
-        const signaturePad = new SignaturePad(canvas, { onEnd: updatePreview });
+        const signaturePad = new SignaturePad(canvas);
         let currentTab = 'draw';
+        let pdfDoc = null; let currentPageNum = 1; let totalPages = 1; let docIsPdf = false;
         
-        // PDF Variables
-        let pdfDoc = null;
-        let currentPageNum = 1;
-        let totalPages = 1;
-        let currentPdfScale = 1;
-        let docIsPdf = false;
-        
-        let sigPosition = { x: 50, y: 50, width: 150, height: 75 };
+        let elementsLayer = []; // Almacenamiento de elementos en pantalla
 
         function switchTab(tab) {
             currentTab = tab;
@@ -139,27 +114,22 @@
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             event.target.classList.add('active');
             document.getElementById(tab + 'Panel').classList.add('active');
-            updatePreview();
         }
 
         document.getElementById('docUpload').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-
             docIsPdf = file.type === "application/pdf";
             if (docIsPdf) {
                 document.getElementById('docx-info').style.display = 'none';
                 const fileURL = URL.createObjectURL(file);
-                
                 const loadingTask = pdfjsLib.getDocument(fileURL);
                 pdfDoc = await loadingTask.promise;
                 totalPages = pdfDoc.numPages;
                 document.getElementById('page-count').textContent = totalPages;
                 document.getElementById('pdf-controls').style.display = 'flex';
                 document.getElementById('preview-container').style.display = 'inline-block';
-                
-                currentPageNum = 1;
-                renderPage(currentPageNum);
+                currentPageNum = 1; renderPage(currentPageNum);
             } else {
                 document.getElementById('preview-container').style.display = 'none';
                 document.getElementById('pdf-controls').style.display = 'none';
@@ -170,124 +140,140 @@
         async function renderPage(num) {
             const page = await pdfDoc.getPage(num);
             const unscaledViewport = page.getViewport({ scale: 1 });
-            currentPdfScale = Math.min(1.5, 800 / unscaledViewport.width);
-            const viewport = page.getViewport({ scale: currentPdfScale });
+            const scale = Math.min(1.5, 800 / unscaledViewport.width);
+            const viewport = page.getViewport({ scale: scale });
 
             const pdfCanvas = document.getElementById('pdf-canvas');
             const context = pdfCanvas.getContext('2d');
-            pdfCanvas.height = viewport.height;
-            pdfCanvas.width = viewport.width;
+            pdfCanvas.height = viewport.height; pdfCanvas.width = viewport.width;
 
             await page.render({ canvasContext: context, viewport: viewport }).promise;
             document.getElementById('page-num').textContent = num;
-            document.getElementById('draggable-sig').style.display = 'block';
-            
-            // Reposicionar firma al centro al cambiar de página
-            sigPosition = { x: (viewport.width / 2) - 75, y: (viewport.height / 2) - 37.5, width: 150, height: 75 };
-            const dragBox = document.getElementById('draggable-sig');
-            dragBox.style.width = '150px';
-            dragBox.style.height = '75px';
-            dragBox.style.transform = `translate(${sigPosition.x}px, ${sigPosition.y}px)`;
         }
 
-        function prevPage() {
-            if (currentPageNum <= 1) return;
-            currentPageNum--;
-            renderPage(currentPageNum);
-        }
-
-        function nextPage() {
-            if (currentPageNum >= totalPages) return;
-            currentPageNum++;
-            renderPage(currentPageNum);
+        function prevPage() { if (currentPageNum > 1) { currentPageNum--; renderPage(currentPageNum); clearElements(); } }
+        function nextPage() { if (currentPageNum < totalPages) { currentPageNum++; renderPage(currentPageNum); clearElements(); } }
+        
+        function clearElements() {
+            document.querySelectorAll('.draggable-item').forEach(e => e.remove());
+            elementsLayer = [];
         }
 
         async function getSignaturePayload() {
             if (currentTab === 'draw') {
                 if(signaturePad.isEmpty()) return null;
-                return signaturePad.toDataURL("image/png");
+                return { type: 'canvas', payload: signaturePad.toDataURL("image/png") };
             } else if (currentTab === 'text') {
                 const text = document.getElementById('textSig').value;
                 if(!text) return null;
                 const tCanvas = document.createElement('canvas');
-                tCanvas.width = 400; tCanvas.height = 100;
+                tCanvas.width = 600; tCanvas.height = 150;
                 const ctx = tCanvas.getContext('2d');
-                ctx.font = "40px 'Brush Script MT', cursive";
-                ctx.fillStyle = "black";
-                ctx.fillText(text, 10, 50);
-                return tCanvas.toDataURL("image/png");
+                ctx.font = "60px 'Brush Script MT', cursive"; ctx.fillStyle = "black";
+                ctx.fillText(text, 10, 80);
+                return { type: 'text', payload: tCanvas.toDataURL("image/png") };
             } else if (currentTab === 'upload') {
                 const imgInput = document.getElementById('imgSigUpload').files[0];
                 if(!imgInput) return null;
-                return await toBase64(imgInput);
+                return { type: 'image', payload: await toBase64(imgInput) };
             }
         }
 
-        async function updatePreview() {
-            if (!docIsPdf) return;
-            const payload = await getSignaturePayload();
-            const dragBox = document.getElementById('draggable-sig');
-            if (payload) { dragBox.style.backgroundImage = `url(${payload})`; } 
-            else { dragBox.style.backgroundImage = 'none'; }
-        }
+        async function addElementToDoc() {
+            if (!docIsPdf) { alert("Para DOCX, los elementos se añaden al final. Solo agrégalos y procesa."); }
+            const data = await getSignaturePayload();
+            if (!data) return alert("Genera una firma, texto o imagen primero.");
 
-        interact('#draggable-sig')
-            .draggable({
-                listeners: {
-                    move(event) {
-                        sigPosition.x += event.dx;
-                        sigPosition.y += event.dy;
-                        event.target.style.transform = `translate(${sigPosition.x}px, ${sigPosition.y}px)`;
-                    }
-                },
-                modifiers: [ interact.modifiers.restrictRect({ restriction: 'parent', endOnly: true }) ]
-            })
-            .resizable({
-                edges: { left: false, right: true, bottom: true, top: false },
-                listeners: {
-                    move(event) {
-                        sigPosition.width = event.rect.width;
-                        sigPosition.height = event.rect.height;
-                        Object.assign(event.target.style, { width: `${event.rect.width}px`, height: `${event.rect.height}px` });
-                    }
-                },
-                modifiers: [
-                    interact.modifiers.restrictSize({ min: { width: 50, height: 25 } }),
-                    interact.modifiers.restrictRect({ restriction: 'parent' })
-                ]
-            });
+            const container = document.getElementById('preview-container');
+            const el = document.createElement('div');
+            el.className = 'draggable-item';
+            el.style.backgroundImage = `url(${data.payload})`;
+            
+            // Estado inicial del elemento
+            const itemState = { id: Date.now(), type: data.type, payload: data.payload, x: 50, y: 50, width: 150, height: 75 };
+            
+            el.id = 'item-' + itemState.id;
+            el.style.width = itemState.width + 'px';
+            el.style.height = itemState.height + 'px';
+            el.style.transform = `translate(${itemState.x}px, ${itemState.y}px)`;
+            
+            // Controles
+            const resizer = document.createElement('div'); resizer.className = 'resize-handle'; el.appendChild(resizer);
+            const delBtn = document.createElement('button'); delBtn.className = 'delete-btn'; delBtn.innerHTML = 'X';
+            delBtn.onclick = () => { el.remove(); elementsLayer = elementsLayer.filter(i => i.id !== itemState.id); };
+            el.appendChild(delBtn);
+
+            container.appendChild(el);
+            elementsLayer.push(itemState);
+
+            interact(el)
+                .draggable({
+                    listeners: {
+                        move(event) {
+                            itemState.x += event.dx; itemState.y += event.dy;
+                            event.target.style.transform = `translate(${itemState.x}px, ${itemState.y}px)`;
+                        }
+                    }, modifiers: [ interact.modifiers.restrictRect({ restriction: 'parent', endOnly: true }) ]
+                })
+                .resizable({
+                    edges: { left: false, right: true, bottom: true, top: false },
+                    listeners: {
+                        move(event) {
+                            itemState.width = event.rect.width; itemState.height = event.rect.height;
+                            Object.assign(event.target.style, { width: `${event.rect.width}px`, height: `${event.rect.height}px` });
+                        }
+                    }, modifiers: [ interact.modifiers.restrictSize({ min: { width: 40, height: 20 } }), interact.modifiers.restrictRect({ restriction: 'parent' }) ]
+                });
+                
+            // Limpiar input actual para permitir más
+            if(currentTab === 'draw') signaturePad.clear();
+            if(currentTab === 'text') document.getElementById('textSig').value = "";
+        }
 
         async function processSignature() {
             const docInput = document.getElementById('docUpload').files[0];
             if (!docInput) return alert("Sube un documento primero.");
             
-            const sigPayload = await getSignaturePayload();
-            if(!sigPayload) return alert("Configura tu firma antes de procesar.");
-
             const statusEl = document.getElementById('status-msg');
             statusEl.innerText = "Procesando documento..."; statusEl.style.color = "var(--accent)";
 
             const docB64 = await toBase64(docInput);
-            
-            const finalPos = {
-                x: sigPosition.x / currentPdfScale,
-                y: sigPosition.y / currentPdfScale,
-                width: sigPosition.width / currentPdfScale,
-                height: sigPosition.height / currentPdfScale
-            };
+            const pdfCanvas = document.getElementById('pdf-canvas');
+            const canvasW = pdfCanvas.offsetWidth || 600;
+            const canvasH = pdfCanvas.offsetHeight || 800;
+
+            let signatureDataArray = [];
+
+            if (docIsPdf) {
+                if (elementsLayer.length === 0) return alert("Añade al menos un elemento al documento.");
+                signatureDataArray = elementsLayer.map(item => ({
+                    type: item.type,
+                    payload: item.payload,
+                    position: {
+                        x_pct: item.x / canvasW,
+                        y_pct: item.y / canvasH,
+                        w_pct: item.width / canvasW,
+                        h_pct: item.height / canvasH
+                    }
+                }));
+            } else {
+                const singlePayload = await getSignaturePayload();
+                if (!singlePayload) return alert("Configura un elemento antes de procesar el DOCX.");
+                signatureDataArray.push({
+                    type: singlePayload.type,
+                    payload: singlePayload.payload,
+                    position: { x_pct: 0, y_pct: 0, w_pct: 0.25, h_pct: 0.1 } // Fallback DOCX
+                });
+            }
 
             const payload = {
                 document: {
                     filename: docInput.name,
                     mime_type: docInput.type || "application/octet-stream",
                     content_base64: docB64.split(',')[1],
-                    page_target: docIsPdf ? currentPageNum : 1 // <- Enlace al backend
+                    page_target: docIsPdf ? currentPageNum : 1
                 },
-                signature_data: {
-                    type: currentTab,
-                    payload: sigPayload,
-                    position: docIsPdf ? finalPos : { width: finalPos.width }
-                }
+                signature_data: signatureDataArray
             };
 
             try {
@@ -295,10 +281,7 @@
                 const result = await response.json();
                 if (result.status === "success") {
                     statusEl.innerText = "¡Éxito! Descargando..."; statusEl.style.color = "#4ade80";
-                    const link = document.createElement('a');
-                    link.href = "data:" + result.output_document.mime_type + ";base64," + result.output_document.content_base64;
-                    link.download = result.output_document.filename;
-                    link.click();
+                    const link = document.createElement('a'); link.href = "data:" + result.output_document.mime_type + ";base64," + result.output_document.content_base64; link.download = result.output_document.filename; link.click();
                 } else {
                     statusEl.innerText = "Error procesando el documento."; statusEl.style.color = "var(--danger)";
                 }
