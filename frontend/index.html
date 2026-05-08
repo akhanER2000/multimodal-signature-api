@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B.L.A.S.T. Signature Engine</title>
-    <!-- Dependencias B.L.A.S.T. -->
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.5/dist/signature_pad.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
@@ -12,143 +11,49 @@
     
     <style>
         :root {
-            --bg-base: #0a0a0a;
-            --bg-panel: #111111;
-            --bg-card: #171717;
-            --border-color: #262626;
-            --text-main: #ededed;
-            --text-muted: #a3a3a3;
-            --accent: #facc15;
-            --accent-hover: #eab308;
-            --danger: #dc2626;
+            --bg-base: #0a0a0a; --bg-panel: #111111; --bg-card: #171717;
+            --border-color: #262626; --text-main: #ededed; --text-muted: #a3a3a3;
+            --accent: #facc15; --accent-hover: #eab308; --danger: #dc2626;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-base);
-            color: var(--text-main);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* Layout Layout: Sidebar + Main */
-        .sidebar {
-            width: 350px;
-            background-color: var(--bg-panel);
-            border-right: 1px solid var(--border-color);
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-            overflow-y: auto;
-        }
-
-        .main-content {
-            flex: 1;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        .header { margin-bottom: 10px; }
-        .header h1 { font-size: 1.2rem; font-weight: 600; color: var(--accent); letter-spacing: 0.5px; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--bg-base); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+        
+        .sidebar { width: 350px; background-color: var(--bg-panel); border-right: 1px solid var(--border-color); padding: 24px; display: flex; flex-direction: column; gap: 24px; overflow-y: auto; }
+        .main-content { flex: 1; padding: 24px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; position: relative; }
+        
+        .header h1 { font-size: 1.2rem; font-weight: 600; color: var(--accent); }
         .header p { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
-
-        .card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 16px;
-        }
-
-        label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
         
-        input[type="file"] {
-            width: 100%;
-            padding: 8px;
-            background: var(--bg-base);
-            border: 1px dashed var(--border-color);
-            border-radius: 4px;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
-
-        /* Tabs */
+        .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; }
+        input[type="file"], input[type="text"] { width: 100%; padding: 8px; background: var(--bg-base); border: 1px dashed var(--border-color); border-radius: 4px; color: var(--text-muted); }
+        input[type="text"] { border-style: solid; font-family: 'Brush Script MT', cursive; font-size: 24px; color: #fff; }
+        
         .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-        .tab {
-            flex: 1;
-            text-align: center;
-            padding: 8px;
-            background: var(--bg-base);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            transition: all 0.2s;
-        }
+        .tab { flex: 1; text-align: center; padding: 8px; background: var(--bg-base); border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
         .tab.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
-        .panel { display: none; }
-        .panel.active { display: block; }
-
-        /* Inputs & Canvas */
+        .panel { display: none; } .panel.active { display: block; }
+        
         canvas.sig-pad { width: 100%; background: #fff; border-radius: 4px; cursor: crosshair; }
-        input[type="text"] {
-            width: 100%; padding: 12px; background: #fff; border: none; border-radius: 4px;
-            font-family: 'Brush Script MT', cursive; font-size: 24px; color: #000;
-        }
-
-        .btn {
-            width: 100%; padding: 12px; font-size: 0.9rem; font-weight: 600; text-transform: uppercase;
-            border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s;
-        }
+        
+        .btn { width: 100%; padding: 12px; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; }
         .btn-primary { background: var(--accent); color: #000; }
-        .btn-primary:hover { background: var(--accent-hover); }
         .btn-secondary { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); margin-top: 8px; }
-        .btn-secondary:hover { background: var(--border-color); }
-        .btn-danger { background: var(--danger); color: #fff; margin-top: 8px; }
-
-        /* Preview Area */
-        #preview-container {
-            position: relative;
-            background: #fff; /* PDF background */
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            display: none; /* Hidden until doc loaded */
-            margin-top: 20px;
-        }
         
+        /* PDF Controls & Preview */
+        #pdf-controls { display: none; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; width: 100%; }
+        #pdf-controls button { width: auto; padding: 6px 12px; margin: 0; }
+        #preview-container { position: relative; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.5); display: none; }
         #pdf-canvas { display: block; }
-
-        /* Draggable Signature Box */
-        #draggable-sig {
-            position: absolute;
-            top: 50px; left: 50px;
-            width: 150px; height: 75px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            border: 2px dashed var(--accent);
-            cursor: move;
-            display: none;
-            box-sizing: border-box;
-            background-color: rgba(250, 204, 21, 0.1);
-        }
         
-        .resize-handle {
-            position: absolute; right: -5px; bottom: -5px; width: 10px; height: 10px;
-            background: var(--accent); border-radius: 50%; cursor: nwse-resize;
+        #draggable-sig {
+            position: absolute; top: 50px; left: 50px; width: 150px; height: 75px;
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            border: 2px dashed var(--accent); cursor: move; display: none; box-sizing: border-box; background-color: rgba(250, 204, 21, 0.1);
         }
-
+        .resize-handle { position: absolute; right: -5px; bottom: -5px; width: 10px; height: 10px; background: var(--accent); border-radius: 50%; cursor: nwse-resize; }
         #status-msg { margin-top: 12px; font-size: 0.85rem; text-align: center; }
         .info-box { background: rgba(250, 204, 21, 0.1); border: 1px solid var(--accent); padding: 12px; border-radius: 4px; font-size: 0.85rem; color: var(--accent); display: none; }
-
     </style>
 </head>
 <body>
@@ -185,7 +90,7 @@
                 <input type="file" id="imgSigUpload" accept="image/png, image/jpeg" onchange="updatePreview()">
             </div>
             
-            <button class="btn btn-secondary" style="margin-top: 16px; border-color: var(--accent); color: var(--accent);" onclick="updatePreview()">Aplicar a Previsualización</button>
+            <button class="btn btn-secondary" style="border-color: var(--accent); color: var(--accent);" onclick="updatePreview()">Aplicar a Previsualización</button>
         </div>
 
         <div>
@@ -196,9 +101,16 @@
 
     <div class="main-content">
         <div id="docx-info" class="info-box">
-            Documento DOCX detectado. La previsualización visual no está disponible. La firma se añadirá automáticamente al final del documento por seguridad arquitectónica.
+            Documento DOCX detectado. La previsualización visual no está disponible. La firma se añadirá al final del documento.
         </div>
         
+        <!-- Paginación añadida aquí -->
+        <div id="pdf-controls">
+            <button class="btn btn-secondary" onclick="prevPage()">Anterior</button>
+            <span>Página <span id="page-num">1</span> de <span id="page-count">1</span></span>
+            <button class="btn btn-secondary" onclick="nextPage()">Siguiente</button>
+        </div>
+
         <div id="preview-container">
             <canvas id="pdf-canvas"></canvas>
             <div id="draggable-sig">
@@ -211,11 +123,14 @@
         const canvas = document.getElementById('sigCanvas');
         const signaturePad = new SignaturePad(canvas, { onEnd: updatePreview });
         let currentTab = 'draw';
-        let currentPdfScale = 1;
+        
+        // PDF Variables
         let pdfDoc = null;
+        let currentPageNum = 1;
+        let totalPages = 1;
+        let currentPdfScale = 1;
         let docIsPdf = false;
         
-        // Estado de la firma
         let sigPosition = { x: 50, y: 50, width: 150, height: 75 };
 
         function switchTab(tab) {
@@ -227,31 +142,33 @@
             updatePreview();
         }
 
-        // Manejo de carga de documento
         document.getElementById('docUpload').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            const isPdf = file.type === "application/pdf";
-            docIsPdf = isPdf;
-            
-            if (isPdf) {
+            docIsPdf = file.type === "application/pdf";
+            if (docIsPdf) {
                 document.getElementById('docx-info').style.display = 'none';
-                document.getElementById('preview-container').style.display = 'inline-block';
                 const fileURL = URL.createObjectURL(file);
-                renderPDF(fileURL);
+                
+                const loadingTask = pdfjsLib.getDocument(fileURL);
+                pdfDoc = await loadingTask.promise;
+                totalPages = pdfDoc.numPages;
+                document.getElementById('page-count').textContent = totalPages;
+                document.getElementById('pdf-controls').style.display = 'flex';
+                document.getElementById('preview-container').style.display = 'inline-block';
+                
+                currentPageNum = 1;
+                renderPage(currentPageNum);
             } else {
                 document.getElementById('preview-container').style.display = 'none';
+                document.getElementById('pdf-controls').style.display = 'none';
                 document.getElementById('docx-info').style.display = 'block';
             }
         });
 
-        async function renderPDF(url) {
-            const loadingTask = pdfjsLib.getDocument(url);
-            pdfDoc = await loadingTask.promise;
-            const page = await pdfDoc.getPage(1);
-            
-            // Ajustar escala al contenedor (max 800px width aprox)
+        async function renderPage(num) {
+            const page = await pdfDoc.getPage(num);
             const unscaledViewport = page.getViewport({ scale: 1 });
             currentPdfScale = Math.min(1.5, 800 / unscaledViewport.width);
             const viewport = page.getViewport({ scale: currentPdfScale });
@@ -262,7 +179,27 @@
             pdfCanvas.width = viewport.width;
 
             await page.render({ canvasContext: context, viewport: viewport }).promise;
+            document.getElementById('page-num').textContent = num;
             document.getElementById('draggable-sig').style.display = 'block';
+            
+            // Reposicionar firma al centro al cambiar de página
+            sigPosition = { x: (viewport.width / 2) - 75, y: (viewport.height / 2) - 37.5, width: 150, height: 75 };
+            const dragBox = document.getElementById('draggable-sig');
+            dragBox.style.width = '150px';
+            dragBox.style.height = '75px';
+            dragBox.style.transform = `translate(${sigPosition.x}px, ${sigPosition.y}px)`;
+        }
+
+        function prevPage() {
+            if (currentPageNum <= 1) return;
+            currentPageNum--;
+            renderPage(currentPageNum);
+        }
+
+        function nextPage() {
+            if (currentPageNum >= totalPages) return;
+            currentPageNum++;
+            renderPage(currentPageNum);
         }
 
         async function getSignaturePayload() {
@@ -290,14 +227,10 @@
             if (!docIsPdf) return;
             const payload = await getSignaturePayload();
             const dragBox = document.getElementById('draggable-sig');
-            if (payload) {
-                dragBox.style.backgroundImage = `url(${payload})`;
-            } else {
-                dragBox.style.backgroundImage = 'none';
-            }
+            if (payload) { dragBox.style.backgroundImage = `url(${payload})`; } 
+            else { dragBox.style.backgroundImage = 'none'; }
         }
 
-        // Interact.js Drag and Resize
         interact('#draggable-sig')
             .draggable({
                 listeners: {
@@ -307,12 +240,7 @@
                         event.target.style.transform = `translate(${sigPosition.x}px, ${sigPosition.y}px)`;
                     }
                 },
-                modifiers: [
-                    interact.modifiers.restrictRect({
-                        restriction: 'parent',
-                        endOnly: true
-                    })
-                ]
+                modifiers: [ interact.modifiers.restrictRect({ restriction: 'parent', endOnly: true }) ]
             })
             .resizable({
                 edges: { left: false, right: true, bottom: true, top: false },
@@ -320,10 +248,7 @@
                     move(event) {
                         sigPosition.width = event.rect.width;
                         sigPosition.height = event.rect.height;
-                        Object.assign(event.target.style, {
-                            width: `${event.rect.width}px`,
-                            height: `${event.rect.height}px`
-                        });
+                        Object.assign(event.target.style, { width: `${event.rect.width}px`, height: `${event.rect.height}px` });
                     }
                 },
                 modifiers: [
@@ -331,9 +256,6 @@
                     interact.modifiers.restrictRect({ restriction: 'parent' })
                 ]
             });
-            
-        // Inicializar transform visual
-        document.getElementById('draggable-sig').style.transform = `translate(${sigPosition.x}px, ${sigPosition.y}px)`;
 
         async function processSignature() {
             const docInput = document.getElementById('docUpload').files[0];
@@ -343,13 +265,10 @@
             if(!sigPayload) return alert("Configura tu firma antes de procesar.");
 
             const statusEl = document.getElementById('status-msg');
-            statusEl.innerText = "Procesando documento...";
-            statusEl.style.color = "var(--accent)";
+            statusEl.innerText = "Procesando documento..."; statusEl.style.color = "var(--accent)";
 
             const docB64 = await toBase64(docInput);
             
-            // Mapeo de coordenadas (Visual del Frontend -> Absolutas del PDF)
-            // Dividimos por la escala para obtener las medidas originales del PDF que espera PyMuPDF
             const finalPos = {
                 x: sigPosition.x / currentPdfScale,
                 y: sigPosition.y / currentPdfScale,
@@ -361,45 +280,34 @@
                 document: {
                     filename: docInput.name,
                     mime_type: docInput.type || "application/octet-stream",
-                    content_base64: docB64.split(',')[1]
+                    content_base64: docB64.split(',')[1],
+                    page_target: docIsPdf ? currentPageNum : 1 // <- Enlace al backend
                 },
                 signature_data: {
                     type: currentTab,
                     payload: sigPayload,
-                    position: docIsPdf ? finalPos : { width: finalPos.width } // DOCX solo usa el width
+                    position: docIsPdf ? finalPos : { width: finalPos.width }
                 }
             };
 
             try {
-                const response = await fetch('/api/sign', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
+                const response = await fetch('/api/sign', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 const result = await response.json();
                 if (result.status === "success") {
-                    statusEl.innerText = "¡Éxito! Descargando documento...";
-                    statusEl.style.color = "#4ade80"; // Verde
+                    statusEl.innerText = "¡Éxito! Descargando..."; statusEl.style.color = "#4ade80";
                     const link = document.createElement('a');
                     link.href = "data:" + result.output_document.mime_type + ";base64," + result.output_document.content_base64;
                     link.download = result.output_document.filename;
                     link.click();
                 } else {
-                    statusEl.innerText = "Error procesando el documento.";
-                    statusEl.style.color = "var(--danger)";
+                    statusEl.innerText = "Error procesando el documento."; statusEl.style.color = "var(--danger)";
                 }
-            } catch (err) {
-                statusEl.innerText = "Error de red.";
-                statusEl.style.color = "var(--danger)";
-            }
+            } catch (err) { statusEl.innerText = "Error de red."; statusEl.style.color = "var(--danger)"; }
         }
 
         const toBase64 = file => new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
+            const reader = new FileReader(); reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error);
         });
     </script>
 </body>
