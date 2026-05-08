@@ -4,7 +4,10 @@ import json
 import os
 
 def process_pdf_signature(input_json_path, output_pdf_path):
-    os.makedirs(os.path.dirname(output_pdf_path), exist_ok=True)
+    output_dir = os.path.dirname(output_pdf_path)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+
     with open(input_json_path, 'r') as f:
         data = json.load(f)
         
@@ -14,11 +17,11 @@ def process_pdf_signature(input_json_path, output_pdf_path):
         page_index = data['document'].get('page_target', 1) - 1
         page = doc[page_index]
         
-        # Dimensiones absolutas de la página objetivo
+        # Dimensiones absolutas de la pagina objetivo
         page_width = page.rect.width
         page_height = page.rect.height
         
-        # Ahora signature_data es un ARRAY (Lista)
+        # signature_data es un ARRAY (Lista)
         signatures = data.get('signature_data', [])
         
         for sig_item in signatures:
@@ -42,8 +45,7 @@ def process_pdf_signature(input_json_path, output_pdf_path):
             
         doc.save(output_pdf_path)
         doc.close()
-        print(f"✅ ÉXITO: PDF firmado generado en {output_pdf_path}")
         return True
     except Exception as e:
-        print(f"❌ ERROR CRÍTICO procesando PDF: {e}")
+        print(f"ERROR procesando PDF: {e}")
         return False

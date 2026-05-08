@@ -5,7 +5,10 @@ import os
 import io
 
 def process_docx_signature(input_json_path, output_docx_path):
-    os.makedirs(os.path.dirname(output_docx_path), exist_ok=True)
+    output_dir = os.path.dirname(output_docx_path)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+
     with open(input_json_path, 'r') as f:
         data = json.load(f)
         
@@ -25,18 +28,17 @@ def process_docx_signature(input_json_path, output_docx_path):
             sig_bytes = base64.b64decode(sig_base64)
             img_stream = io.BytesIO(sig_bytes)
             
-            # Ancho estándar asumido de 600 puntos para Word
+            # Ancho estandar asumido de 600 puntos para Word
             pos = sig_item['position']
             width_pt = pos.get('w_pct', 0.25) * 600 
             
             paragraph = doc.add_paragraph()
-            paragraph.alignment = 1 # Centrado
+            paragraph.alignment = 1  # Centrado
             run = paragraph.add_run()
             run.add_picture(img_stream, width=docx.shared.Pt(width_pt))
             
         doc.save(output_docx_path)
-        print(f"✅ ÉXITO: DOCX firmado generado en {output_docx_path}")
         return True
     except Exception as e:
-        print(f"❌ ERROR CRÍTICO procesando DOCX: {e}")
+        print(f"ERROR procesando DOCX: {e}")
         return False
