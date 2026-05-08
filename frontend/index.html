@@ -33,7 +33,7 @@
         #pdf-controls button{width:auto;padding:6px 12px;margin:0}
         #preview-container{position:relative;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,.5);display:none}
         #pdf-canvas{display:block}
-        .draggable-item{position:absolute;background-size:contain;background-repeat:no-repeat;background-position:center;border:2px dashed rgba(250,204,21,.5);cursor:move;box-sizing:border-box;background-color:rgba(250,204,21,.05);touch-action:none}
+        .draggable-item{position:absolute;top:0;left:0;background-size:contain;background-repeat:no-repeat;background-position:center;border:2px dashed rgba(250,204,21,.5);cursor:move;box-sizing:border-box;background-color:rgba(250,204,21,.05);touch-action:none}
         .draggable-item:hover{border-color:var(--accent);background-color:rgba(250,204,21,.15)}
         .draggable-item .resize-handle{position:absolute;right:-5px;bottom:-5px;width:12px;height:12px;background:var(--accent);border-radius:50%;cursor:nwse-resize}
         .draggable-item .delete-btn{position:absolute;top:-8px;right:-8px;background:var(--danger);color:#fff;border-radius:50%;width:20px;height:20px;font-size:11px;line-height:20px;text-align:center;cursor:pointer;border:none;z-index:10}
@@ -197,7 +197,10 @@ document.getElementById('addBtn').addEventListener('click', async function() {
     if (!data) return alert('Genera una firma, texto o imagen primero.');
 
     const container = document.getElementById('preview-container');
-    const state = {id: Date.now(), type: data.type, payload: data.payload, x:50, y:50, w:150, h:75};
+    const pc = document.getElementById('pdf-canvas');
+    const centerX = Math.round((pc.offsetWidth || 600) / 2 - 75);
+    const centerY = Math.round((pc.offsetHeight || 800) / 2 - 37);
+    const state = {id: Date.now(), type: data.type, payload: data.payload, x:centerX, y:centerY, w:150, h:75};
 
     const el = document.createElement('div');
     el.className = 'draggable-item';
@@ -278,8 +281,8 @@ document.getElementById('processBtn').addEventListener('click', async function()
 
     const docB64 = await fileToB64(docFile);
     const pc = document.getElementById('pdf-canvas');
-    const cw = pc.width || 600;
-    const ch = pc.height || 800;
+    const cw = pc.offsetWidth || pc.width || 600;
+    const ch = pc.offsetHeight || pc.height || 800;
 
     const sigArray = elements.map(item => ({
         type: item.type,
