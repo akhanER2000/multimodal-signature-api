@@ -133,6 +133,19 @@
     <script>
 const sigCanvas = document.getElementById('sigCanvas');
 const signaturePad = new SignaturePad(sigCanvas);
+
+// --- INICIO PARCHE B.L.A.S.T. (Calibracion Responsiva del Canvas) ---
+function resizeCanvas() {
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    sigCanvas.width = sigCanvas.offsetWidth * ratio;
+    sigCanvas.height = sigCanvas.offsetHeight * ratio;
+    sigCanvas.getContext("2d").scale(ratio, ratio);
+    signaturePad.clear();
+}
+window.addEventListener("resize", resizeCanvas);
+setTimeout(resizeCanvas, 100);
+// --- FIN PARCHE B.L.A.S.T. ---
+
 let currentTab = 'draw';
 let pdfDoc = null, currentPage = 1, totalPages = 1, docIsPdf = false;
 let elements = [];
