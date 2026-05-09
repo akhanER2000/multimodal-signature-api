@@ -4,117 +4,125 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B.L.A.S.T. Signature Engine</title>
+    
+    <!-- Dependencias B.L.A.S.T. -->
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.5/dist/signature_pad.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
-    <script>pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';</script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';</script>
+    
+    <!-- Google Fonts para Firmas -->
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Dancing+Script:wght@700&family=Great+Vibes&family=Pacifico&display=swap" rel="stylesheet">
+    
     <style>
-        :root{--bg-base:#0a0a0a;--bg-panel:#111;--bg-card:#171717;--border:#262626;--text:#ededed;--muted:#a3a3a3;--accent:#facc15;--accent-h:#eab308;--danger:#dc2626;--success:#16a34a}
-        *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Segoe UI',Roboto,sans-serif;background:var(--bg-base);color:var(--text);display:flex;height:100vh;overflow:hidden}
-        .sidebar{width:380px;background:var(--bg-panel);border-right:1px solid var(--border);padding:24px;display:flex;flex-direction:column;gap:20px;overflow-y:auto}
-        .main-content{flex:1;padding:24px;display:flex;flex-direction:column;align-items:center;overflow-y:auto}
-        .header h1{font-size:1.2rem;font-weight:600;color:var(--accent)}
-        .header p{font-size:.85rem;color:var(--muted);margin-top:4px}
-        .card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:16px}
-        label{display:block;font-size:.85rem;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase}
-        input[type="file"]{width:100%;padding:8px;background:var(--bg-base);border:1px dashed var(--border);border-radius:4px;color:var(--muted)}
-        input[type="text"]{width:100%;padding:12px;background:var(--bg-base);border:1px solid var(--border);border-radius:4px;font-family:'Brush Script MT',cursive;font-size:24px;color:#fff}
-        .tabs{display:flex;gap:8px;margin-bottom:16px}
-        .tab{flex:1;text-align:center;padding:8px;background:var(--bg-base);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:.85rem;color:var(--muted);transition:all .2s}
-        .tab.active{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600}
-        .panel{display:none}.panel.active{display:block}
-        canvas.sig-pad{width:100%;background:#fff;border-radius:4px;cursor:crosshair}
-        .btn{width:100%;padding:12px;font-size:.9rem;font-weight:600;text-transform:uppercase;border:none;border-radius:4px;cursor:pointer;transition:all .2s}
-        .btn-primary{background:var(--accent);color:#000}.btn-primary:hover{background:var(--accent-h)}
-        .btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text);margin-top:8px}.btn-secondary:hover{background:var(--border)}
-        .btn-success{background:var(--success);color:#fff;margin-top:16px;border:none}.btn-success:hover{background:#15803d}
-        #pdf-controls{display:none;align-items:center;justify-content:center;gap:16px;margin-bottom:16px;width:100%}
-        #pdf-controls button{width:auto;padding:6px 12px;margin:0}
-        #preview-container{position:relative;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,.5);display:none}
-        #pdf-canvas{display:block}
-        .draggable-item{position:absolute;top:0;left:0;background-size:contain;background-repeat:no-repeat;background-position:center;border:2px dashed rgba(250,204,21,.5);cursor:move;box-sizing:border-box;background-color:rgba(250,204,21,.05);touch-action:none}
-        .draggable-item:hover{border-color:var(--accent);background-color:rgba(250,204,21,.15)}
-        .draggable-item .resize-handle{position:absolute;right:-5px;bottom:-5px;width:12px;height:12px;background:var(--accent);border-radius:50%;cursor:nwse-resize}
-        .draggable-item .delete-btn{position:absolute;top:-8px;right:-8px;background:var(--danger);color:#fff;border-radius:50%;width:20px;height:20px;font-size:11px;line-height:20px;text-align:center;cursor:pointer;border:none;z-index:10}
-        #status-msg{margin-top:12px;font-size:.85rem;text-align:center}
-        .info-box{background:rgba(250,204,21,.1);border:1px solid var(--accent);padding:12px;border-radius:4px;font-size:.85rem;color:var(--accent);display:none}
-        .element-count{font-size:.8rem;color:var(--muted);text-align:center;margin-top:8px}
-        /* --- B.L.A.S.T. RESPONSIVE & TOUCH PATCH --- */
+        :root { --bg-base: #0a0a0a; --bg-panel: #111111; --bg-card: #171717; --border-color: #262626; --text-main: #ededed; --text-muted: #a3a3a3; --accent: #facc15; --danger: #dc2626; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--bg-base); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 380px; background-color: var(--bg-panel); border-right: 1px solid var(--border-color); padding: 24px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
+        .main-content { flex: 1; padding: 24px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; position: relative; }
+        .header h1 { font-size: 1.2rem; font-weight: 600; color: var(--accent); }
+        .header p { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+        .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; }
+        input[type="file"], input[type="text"], select { width: 100%; padding: 8px; background: var(--bg-base); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); }
         
-        /* Bloquear scroll nativo al tocar elementos interactivos */
-        canvas.sig-pad { touch-action: none; }
-        .draggable-item { touch-action: none; }
+        .style-controls { display: flex; gap: 10px; margin-bottom: 15px; }
+        .style-controls input[type="color"] { width: 50px; height: 38px; padding: 0; border: 1px solid var(--border-color); cursor: pointer; background: transparent; }
         
-        /* Adaptacion a dispositivos moviles y tablets (hasta 768px) */
+        .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+        .tab { flex: 1; text-align: center; padding: 8px; background: var(--bg-base); border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+        .tab.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+        .panel { display: none; } .panel.active { display: block; }
+        
+        canvas.sig-pad { width: 100%; background: #fff; border-radius: 4px; cursor: crosshair; touch-action: none; }
+        
+        .btn { width: 100%; padding: 12px; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background: var(--accent); color: #000; }
+        .btn-secondary { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); margin-top: 8px; }
+        .btn-success { background: #16a34a; color: #fff; margin-top: 16px; border: 1px solid #16a34a; }
+        
+        #pdf-controls { display: none; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; width: 100%; }
+        #pdf-controls button { width: auto; padding: 6px 12px; margin: 0; }
+        #preview-container { position: relative; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.5); display: none; }
+        #pdf-canvas { display: block; }
+        
+        /* CRITICAL: top:0;left:0 fixes coordinate origin for accurate PDF mapping */
+        .draggable-item { position: absolute; top: 0; left: 0; background-size: contain; background-repeat: no-repeat; background-position: center; border: 2px dashed rgba(250, 204, 21, 0.5); cursor: move; box-sizing: border-box; touch-action: none; }
+        .draggable-item:hover { border-color: var(--accent); background-color: rgba(250, 204, 21, 0.15); }
+        .draggable-item .resize-handle { position: absolute; right: -5px; bottom: -5px; width: 15px; height: 15px; background: var(--accent); border-radius: 50%; cursor: nwse-resize; display: none; }
+        .draggable-item:hover .resize-handle { display: block; }
+        .draggable-item .delete-btn { position: absolute; top: -10px; right: -10px; background: var(--danger); color: white; border-radius: 50%; width: 24px; height: 24px; font-size: 14px; font-weight: bold; line-height: 24px; text-align: center; cursor: pointer; display: none; border: none; }
+        .draggable-item:hover .delete-btn { display: block; }
+        
+        #status-msg { margin-top: 12px; font-size: 0.85rem; text-align: center; }
+        .info-box { background: rgba(250, 204, 21, 0.1); border: 1px solid var(--accent); padding: 12px; border-radius: 4px; font-size: 0.85rem; color: var(--accent); display: none; }
+        .element-count { font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 8px; }
+
         @media (max-width: 768px) {
-            body { 
-                flex-direction: column; 
-                overflow-y: auto; /* Permitir scroll vertical general en movil */
-            }
-            .sidebar { 
-                width: 100%; 
-                max-height: 40vh; /* Ocupa maximo el 40% superior de la pantalla */
-                border-right: none; 
-                border-bottom: 2px solid var(--accent); 
-                padding: 16px;
-            }
-            .main-content { 
-                padding: 10px; 
-                overflow-x: auto; /* Permitir paneo horizontal del PDF si es muy ancho */
-                justify-content: flex-start;
-            }
-            /* Ajustar tamano del Canvas de dibujo para pantallas pequenas */
-            canvas.sig-pad {
-                width: 100% !important;
-                height: 150px !important;
-            }
-            /* Asegurar que el contenedor del PDF no desborde incontrolablemente */
-            #preview-container {
-                max-width: 100%;
-                overflow-x: scroll;
-            }
+            body { flex-direction: column; overflow-y: auto; }
+            .sidebar { width: 100%; max-height: none; border-right: none; border-bottom: 2px solid var(--accent); padding: 16px; }
+            .main-content { padding: 10px; overflow-x: auto; justify-content: flex-start; }
+            canvas.sig-pad { width: 100% !important; height: 200px !important; }
+            #preview-container { max-width: 100%; overflow-x: scroll; }
+            .draggable-item .resize-handle, .draggable-item .delete-btn { display: block; }
         }
     </style>
 </head>
 <body>
+
     <div class="sidebar">
-        <div class="header"><h1>B.L.A.S.T. ENGINE</h1><p>Motor de Firma Multimodal</p></div>
+        <div class="header"><h1>B.L.A.S.T. ENGINE</h1><p>Modulo de Firma Multimodal</p></div>
+        
+        <div class="card"><label>1. Documento Base</label><input type="file" id="docUpload" accept=".pdf,.docx"></div>
+
         <div class="card">
-            <label>1. Documento Base</label>
-            <input type="file" id="docUpload" accept=".pdf,.docx">
-        </div>
-        <div class="card">
-            <label>2. Crear Elemento</label>
+            <label>2. Configurar Estilo</label>
+            <div class="style-controls">
+                <input type="color" id="elementColor" value="#000000" title="Color de la firma o texto">
+                <select id="fontSelector">
+                    <option value="'Brush Script MT', cursive" style="font-family: 'Brush Script MT', cursive;">Brush Script (Clasica)</option>
+                    <option value="'Caveat', cursive" style="font-family: 'Caveat', cursive;">Caveat (Moderna)</option>
+                    <option value="'Dancing Script', cursive" style="font-family: 'Dancing Script', cursive;">Dancing Script</option>
+                    <option value="'Great Vibes', cursive" style="font-family: 'Great Vibes', cursive;">Great Vibes (Elegante)</option>
+                    <option value="'Pacifico', cursive" style="font-family: 'Pacifico', cursive;">Pacifico (Gruesa)</option>
+                </select>
+            </div>
+
+            <label>3. Crear Elemento</label>
             <div class="tabs">
                 <div class="tab active" data-tab="draw">Dibujar</div>
                 <div class="tab" data-tab="text">Texto</div>
                 <div class="tab" data-tab="upload">Imagen</div>
             </div>
+
             <div id="drawPanel" class="panel active">
                 <canvas id="sigCanvas" class="sig-pad" width="300" height="150"></canvas>
                 <button class="btn btn-secondary" id="clearBtn">Limpiar Trazo</button>
             </div>
+
             <div id="textPanel" class="panel">
-                <input type="text" id="textSig" placeholder="Escribe tu nombre o fecha...">
+                <input type="text" id="textSig" placeholder="Escribe aqui (ej. tu nombre, fecha)...">
             </div>
+
             <div id="uploadPanel" class="panel">
-                <input type="file" id="imgSigUpload" accept="image/png,image/jpeg">
+                <input type="file" id="imgSigUpload" accept="image/png, image/jpeg">
             </div>
-            <button class="btn btn-success" id="addBtn">+ Añadir al Documento</button>
+            
+            <button class="btn btn-success" id="addBtn">+ Anadir al Documento</button>
             <div class="element-count" id="elCount"></div>
         </div>
+
         <div>
-            <button class="btn btn-primary" id="processBtn">Procesar y Firmar</button>
+            <button class="btn btn-primary" id="processBtn">Procesar y Firmar Documento</button>
             <div id="status-msg">Esperando documento...</div>
         </div>
     </div>
 
     <div class="main-content">
-        <div id="docx-info" class="info-box">Documento DOCX detectado. Los elementos se añadirán al final del documento.</div>
+        <div id="docx-info" class="info-box">Documento DOCX detectado. Los elementos se anadiran secuencialmente al final del documento.</div>
         <div id="pdf-controls">
             <button class="btn btn-secondary" id="prevBtn">Anterior</button>
-            <span>Pág <span id="page-num">1</span> / <span id="page-count">1</span></span>
+            <span>Pagina <span id="page-num">1</span> de <span id="page-count">1</span></span>
             <button class="btn btn-secondary" id="nextBtn">Siguiente</button>
         </div>
         <div id="preview-container">
@@ -122,13 +130,21 @@
         </div>
     </div>
 
-<script>
-// === State ===
+    <script>
 const sigCanvas = document.getElementById('sigCanvas');
 const signaturePad = new SignaturePad(sigCanvas);
 let currentTab = 'draw';
 let pdfDoc = null, currentPage = 1, totalPages = 1, docIsPdf = false;
 let elements = [];
+
+// === Color & Font bindings ===
+document.getElementById('elementColor').addEventListener('input', e => {
+    signaturePad.penColor = e.target.value;
+});
+document.getElementById('fontSelector').addEventListener('change', e => {
+    document.getElementById('textSig').style.fontFamily = e.target.value;
+});
+document.getElementById('textSig').style.fontFamily = document.getElementById('fontSelector').value;
 
 // === Tabs ===
 document.querySelectorAll('.tab').forEach(t => {
@@ -138,8 +154,12 @@ document.querySelectorAll('.tab').forEach(t => {
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
         this.classList.add('active');
         document.getElementById(currentTab + 'Panel').classList.add('active');
+        // Show font selector only for text tab
+        document.getElementById('fontSelector').style.display = (currentTab === 'text') ? 'block' : 'none';
     });
 });
+// Init: hide font selector on draw tab
+document.getElementById('fontSelector').style.display = 'none';
 
 // === Clear ===
 document.getElementById('clearBtn').addEventListener('click', () => signaturePad.clear());
@@ -149,7 +169,6 @@ document.getElementById('docUpload').addEventListener('change', async function()
     const file = this.files[0];
     if (!file) return;
     docIsPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-
     clearAllElements();
 
     if (docIsPdf) {
@@ -166,7 +185,7 @@ document.getElementById('docUpload').addEventListener('change', async function()
         document.getElementById('pdf-controls').style.display = 'none';
         document.getElementById('docx-info').style.display = 'block';
     }
-    document.getElementById('status-msg').textContent = 'Documento cargado. Añade elementos.';
+    document.getElementById('status-msg').textContent = 'Documento cargado. Anade elementos.';
     document.getElementById('status-msg').style.color = 'var(--accent)';
 });
 
@@ -195,7 +214,6 @@ function clearAllElements() {
     elements = [];
     updateCount();
 }
-
 function updateCount() {
     const c = elements.length;
     document.getElementById('elCount').textContent = c > 0 ? c + ' elemento(s) en documento' : '';
@@ -203,6 +221,8 @@ function updateCount() {
 
 // === Get Payload ===
 async function getPayload() {
+    const currentColor = document.getElementById('elementColor').value;
+
     if (currentTab === 'draw') {
         if (signaturePad.isEmpty()) return null;
         return {type:'canvas', payload: signaturePad.toDataURL('image/png')};
@@ -210,12 +230,20 @@ async function getPayload() {
     if (currentTab === 'text') {
         const txt = document.getElementById('textSig').value.trim();
         if (!txt) return null;
+        const currentFont = document.getElementById('fontSelector').value;
         const tc = document.createElement('canvas');
-        tc.width = 600; tc.height = 150;
+        // Measure text for dynamic canvas width
+        const ctxDummy = tc.getContext('2d');
+        ctxDummy.font = '80px ' + currentFont;
+        const metrics = ctxDummy.measureText(txt);
+        tc.width = Math.max(metrics.width + 40, 300);
+        tc.height = 150;
         const ctx = tc.getContext('2d');
-        ctx.font = "60px 'Brush Script MT', cursive";
-        ctx.fillStyle = 'black';
-        ctx.fillText(txt, 10, 80);
+        ctx.font = '80px ' + currentFont;
+        ctx.fillStyle = currentColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(txt, tc.width / 2, tc.height / 2);
         return {type:'text', payload: tc.toDataURL('image/png')};
     }
     if (currentTab === 'upload') {
@@ -233,14 +261,17 @@ document.getElementById('addBtn').addEventListener('click', async function() {
 
     const container = document.getElementById('preview-container');
     const pc = document.getElementById('pdf-canvas');
-    const centerX = Math.round((pc.offsetWidth || 600) / 2 - 75);
-    const centerY = Math.round((pc.offsetHeight || 800) / 2 - 37);
-    const state = {id: Date.now(), type: data.type, payload: data.payload, x:centerX, y:centerY, w:150, h:75};
+    // Center the new element on the canvas
+    const elW = data.type === 'text' ? 250 : 150;
+    const elH = 75;
+    const centerX = Math.round((pc.offsetWidth || 600) / 2 - elW / 2);
+    const centerY = Math.round((pc.offsetHeight || 800) / 2 - elH / 2);
+    const state = {id: Date.now(), type: data.type, payload: data.payload, x: centerX, y: centerY, w: elW, h: elH};
 
     const el = document.createElement('div');
     el.className = 'draggable-item';
     el.id = 'el-' + state.id;
-    el.style.cssText = `width:${state.w}px;height:${state.h}px;transform:translate(${state.x}px,${state.y}px);background-image:url(${data.payload})`;
+    el.style.cssText = 'width:'+state.w+'px;height:'+state.h+'px;transform:translate('+state.x+'px,'+state.y+'px);background-image:url('+data.payload+')';
 
     // Resize handle
     const rh = document.createElement('div');
@@ -250,7 +281,7 @@ document.getElementById('addBtn').addEventListener('click', async function() {
     // Delete button
     const db = document.createElement('button');
     db.className = 'delete-btn';
-    db.textContent = 'X';
+    db.innerHTML = '&times;';
     db.addEventListener('click', function(e) {
         e.stopPropagation();
         el.remove();
@@ -270,7 +301,7 @@ document.getElementById('addBtn').addEventListener('click', async function() {
                 move(ev) {
                     state.x += ev.dx;
                     state.y += ev.dy;
-                    ev.target.style.transform = `translate(${state.x}px, ${state.y}px)`;
+                    ev.target.style.transform = 'translate('+state.x+'px,'+state.y+'px)';
                 }
             },
             modifiers: [interact.modifiers.restrictRect({restriction:'parent', endOnly:true})]
@@ -291,7 +322,7 @@ document.getElementById('addBtn').addEventListener('click', async function() {
             ]
         });
 
-    // Clear current input for next element
+    // Clear current input
     if (currentTab === 'draw') signaturePad.clear();
     if (currentTab === 'text') document.getElementById('textSig').value = '';
 });
@@ -312,7 +343,7 @@ document.getElementById('processBtn').addEventListener('click', async function()
         elements.push({id:0, type:p.type, payload:p.payload, x:0, y:0, w:150, h:75});
     }
 
-    if (elements.length === 0) return alert('Añade al menos un elemento al documento.');
+    if (elements.length === 0) return alert('Anade al menos un elemento al documento.');
 
     const docB64 = await fileToB64(docFile);
     const pc = document.getElementById('pdf-canvas');
@@ -344,7 +375,7 @@ document.getElementById('processBtn').addEventListener('click', async function()
         const res = await fetch('/api/sign', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
         const r = await res.json();
         if (r.status === 'success') {
-            status.textContent = 'Éxito! Descargando...';
+            status.textContent = 'Exito! Descargando...';
             status.style.color = '#4ade80';
             const a = document.createElement('a');
             a.href = 'data:' + r.output_document.mime_type + ';base64,' + r.output_document.content_base64;
@@ -371,6 +402,6 @@ function fileToB64(file) {
         r.readAsDataURL(file);
     });
 }
-</script>
+    </script>
 </body>
 </html>
